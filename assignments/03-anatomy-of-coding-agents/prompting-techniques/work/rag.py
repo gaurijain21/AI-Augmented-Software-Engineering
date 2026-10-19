@@ -21,7 +21,7 @@ def load_chunks() -> list[str]:
         return [line.strip() for line in f if line.strip()]
 
 
-# return the subset of chunks relevant to `question` (simple keyword overlap is fine).
+# Retriever: keyword overlap between the question and each help-center line.
 STOPWORDS = {
     "a", "an", "the", "do", "does", "did", "i", "you", "your", "we", "my", "me", "is", "are",
     "to", "of", "in", "on", "for", "and", "or", "how", "what", "what's", "when", "where",
@@ -51,7 +51,7 @@ def YOUR_RETRIEVER(question: str, chunks: list[str], top_k: int = 3) -> list[str
     return [chunk for _, chunk in scored[:top_k]]
 
 
-# Fill this in! Force the model to answer only from the provided context.
+# System prompt: answer only from the provided context.
 YOUR_SYSTEM_PROMPT = """You are a customer support assistant for an online store.
 Answer the question using ONLY the information in the Context. Do not use outside knowledge and do not guess.
 When the Context answers the question, reply in one or two sentences and reuse the key words and numbers from the Context.

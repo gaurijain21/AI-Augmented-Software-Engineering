@@ -17,7 +17,7 @@ POLICY = """Refund policy:
 - Final-sale items are never refundable.
 """
 
-# Fill this in! Encourage step-by-step reasoning, ending with DECISION: YES/NO.
+# System prompt: step-by-step rule check, ending with DECISION: YES/NO.
 YOUR_SYSTEM_PROMPT = """You are a support agent deciding whether an order is eligible for a refund under the policy below.
 
 Think step by step. Check every rule in the policy, one per line, in this format:

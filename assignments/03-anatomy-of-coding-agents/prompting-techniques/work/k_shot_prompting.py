@@ -12,7 +12,7 @@ from ollama import chat
 MODEL = "llama3.1:8b"
 NUM_RUNS = 5
 
-# Fill this in! Include a few labeled examples (k-shot) in the system prompt.
+# System prompt with labeled examples (k-shot).
 YOUR_SYSTEM_PROMPT = """You classify customer support tickets for an online store.
 
 Labels:

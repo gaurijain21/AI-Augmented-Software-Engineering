@@ -20,7 +20,7 @@ def get_order_status(order_id: str) -> str:
     return FAKE_DB.get(order_id, "not found")
 
 
-# describe the tool so the model knows when and how to call it.
+# Tool schema: describes when and how to call the tool.
 TOOLS = [
     {
         "type": "function",
@@ -38,7 +38,7 @@ TOOLS = [
     }
 ]
 
-# Fill this in! Tell the model to look up the order before answering.
+# System prompt: always look up the order before answering.
 YOUR_SYSTEM_PROMPT = """You are a support assistant for an online store.
 You do not know the status of any order yourself. Whenever a customer mentions an order number or asks about an order, you MUST call the get_order_status tool with that order number before replying. Never guess or make up a status.
 After you get the tool result, answer in one or two friendly sentences using that status."""
