@@ -1,4 +1,6 @@
-from main import RecipeIn, create_recipe, get_recipe, list_recipes
+from fastapi import HTTPException
+
+from main import RecipeIn, create_recipe, get_recipe, list_recipes, shopping_list
 
 
 def test_create_and_get_recipe():
@@ -15,8 +17,6 @@ def test_list_recipes():
 
 
 def test_unknown_recipe_404():
-    from fastapi import HTTPException
-
     try:
         get_recipe(99999)
     except HTTPException as exc:
@@ -29,3 +29,13 @@ def test_tag_filter_returns_only_matching_recipes():
     create_recipe(RecipeIn(title="Waffles", tags=["week7-breakfast"]))
     create_recipe(RecipeIn(title="Pasta", tags=["week7-dinner"]))
     assert [recipe["title"] for recipe in list_recipes(tag="week7-breakfast")] == ["Waffles"]
+
+
+def test_shopping_list_deduplicates_in_first_seen_order():
+    first = create_recipe(
+        RecipeIn(title="Soup", ingredients=["onion", "carrot", "salt"])
+    )["id"]
+    second = create_recipe(
+        RecipeIn(title="Stew", ingredients=["carrot", "potato", "salt"])
+    )["id"]
+    assert shopping_list(f"{first},{second}") == ["onion", "carrot", "salt", "potato"]
