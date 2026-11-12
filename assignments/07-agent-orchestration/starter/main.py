@@ -11,6 +11,8 @@ Test:
     pytest
 """
 import json
+import math
+import re
 import sqlite3
 from contextlib import closing
 from pathlib import Path
@@ -120,3 +122,22 @@ def shopping_list(ids: str = ""):
                     seen.add(ingredient)
                     merged.append(ingredient)
     return merged
+
+
+def _scale_ingredient(ingredient: str, factor: float) -> str:
+    match = re.match(r"^(\d+(?:\.\d+)?)\s+(.+)$", ingredient)
+    if match is None:
+        return ingredient
+    amount = float(match.group(1)) * factor
+    return f"{amount:g} {match.group(2)}"
+
+
+@app.get("/recipes/{recipe_id}/scaled")
+def scaled_recipe(recipe_id: int, factor: float = 1):
+    if not math.isfinite(factor) or factor <= 0:
+        raise HTTPException(status_code=422, detail="factor must be a positive number")
+    recipe = get_recipe(recipe_id)
+    return {
+        **recipe,
+        "ingredients": [_scale_ingredient(item, factor) for item in recipe["ingredients"]],
+    }
