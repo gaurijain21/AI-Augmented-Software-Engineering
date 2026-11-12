@@ -11,6 +11,7 @@ Test:
     pytest
 """
 import json
+import math
 import re
 import sqlite3
 from contextlib import closing
@@ -98,13 +99,15 @@ def get_recipe(recipe_id: int):
 
 @app.get("/recipes/{recipe_id}/scaled")
 def scaled_recipe(recipe_id: int, factor: float = 1):
+    if not math.isfinite(factor) or factor <= 0:
+        raise HTTPException(status_code=422, detail="factor must be a positive number")
     recipe = get_recipe(recipe_id)
     scaled_ingredients = []
     for ingredient in recipe["ingredients"]:
         match = re.match(r"^(\d+(?:\.\d+)?)\s+(.+)$", ingredient)
         if match:
             amount = float(match.group(1)) * factor
-            amount_text = str(int(amount)) if amount.is_integer() else str(amount)
+            amount_text = f"{amount:g}"
             scaled_ingredients.append(f"{amount_text} {match.group(2)}")
         else:
             scaled_ingredients.append(ingredient)

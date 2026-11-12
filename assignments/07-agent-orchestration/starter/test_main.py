@@ -1,3 +1,5 @@
+from fastapi import HTTPException
+
 from main import RecipeIn, create_recipe, get_recipe, list_recipes, scaled_recipe
 
 
@@ -15,8 +17,6 @@ def test_list_recipes():
 
 
 def test_unknown_recipe_404():
-    from fastapi import HTTPException
-
     try:
         get_recipe(99999)
     except HTTPException as exc:
@@ -31,3 +31,13 @@ def test_scaled_recipe_doubles_numeric_ingredients():
     )
     result = scaled_recipe(recipe["id"], factor=2)
     assert result["ingredients"] == ["400 g flour", "4 eggs", "salt"]
+
+
+def test_scaled_recipe_rejects_non_positive_factor():
+    recipe = create_recipe(RecipeIn(title="Soup", ingredients=["1 l stock"]))
+    try:
+        scaled_recipe(recipe["id"], factor=0)
+    except HTTPException as exc:
+        assert exc.status_code == 422
+    else:
+        raise AssertionError("non-positive factors should be rejected")
