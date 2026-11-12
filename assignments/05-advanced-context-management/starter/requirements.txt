@@ -1,0 +1,4 @@
+# FastMCP 1.x API used by the starter; 2.x moved the import path.
+mcp<2
+httpx
+pytest
