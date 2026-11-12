@@ -11,6 +11,7 @@ Test:
     pytest
 """
 import json
+import re
 import sqlite3
 from contextlib import closing
 from pathlib import Path
@@ -93,3 +94,18 @@ def get_recipe(recipe_id: int):
     if row is None:
         raise HTTPException(status_code=404, detail="unknown recipe")
     return _row_to_recipe(row)
+
+
+@app.get("/recipes/{recipe_id}/scaled")
+def scaled_recipe(recipe_id: int, factor: float = 1):
+    recipe = get_recipe(recipe_id)
+    scaled_ingredients = []
+    for ingredient in recipe["ingredients"]:
+        match = re.match(r"^(\d+(?:\.\d+)?)\s+(.+)$", ingredient)
+        if match:
+            amount = float(match.group(1)) * factor
+            amount_text = str(int(amount)) if amount.is_integer() else str(amount)
+            scaled_ingredients.append(f"{amount_text} {match.group(2)}")
+        else:
+            scaled_ingredients.append(ingredient)
+    return {**recipe, "ingredients": scaled_ingredients}
