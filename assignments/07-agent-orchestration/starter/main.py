@@ -98,17 +98,20 @@ def get_recipe(recipe_id: int):
 
 
 @app.get("/recipes/{recipe_id}/scaled")
+def _scale_ingredient(ingredient: str, factor: float) -> str:
+    match = re.match(r"^(\d+(?:\.\d+)?)\s+(.+)$", ingredient)
+    if match is None:
+        return ingredient
+    amount = float(match.group(1)) * factor
+    return f"{amount:g} {match.group(2)}"
+
+
+@app.get("/recipes/{recipe_id}/scaled")
 def scaled_recipe(recipe_id: int, factor: float = 1):
     if not math.isfinite(factor) or factor <= 0:
         raise HTTPException(status_code=422, detail="factor must be a positive number")
     recipe = get_recipe(recipe_id)
-    scaled_ingredients = []
-    for ingredient in recipe["ingredients"]:
-        match = re.match(r"^(\d+(?:\.\d+)?)\s+(.+)$", ingredient)
-        if match:
-            amount = float(match.group(1)) * factor
-            amount_text = f"{amount:g}"
-            scaled_ingredients.append(f"{amount_text} {match.group(2)}")
-        else:
-            scaled_ingredients.append(ingredient)
-    return {**recipe, "ingredients": scaled_ingredients}
+    return {
+        **recipe,
+        "ingredients": [_scale_ingredient(item, factor) for item in recipe["ingredients"]],
+    }

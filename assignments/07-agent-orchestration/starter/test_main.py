@@ -41,3 +41,20 @@ def test_scaled_recipe_rejects_non_positive_factor():
         assert exc.status_code == 422
     else:
         raise AssertionError("non-positive factors should be rejected")
+
+
+def test_scaled_recipe_formats_decimal_results_and_keeps_unquantified_items():
+    recipe = create_recipe(
+        RecipeIn(title="Sauce", ingredients=["200 g tomatoes", "pepper"])
+    )
+    result = scaled_recipe(recipe["id"], factor=0.5)
+    assert result["ingredients"] == ["100 g tomatoes", "pepper"]
+
+
+def test_scaled_recipe_unknown_recipe_404():
+    try:
+        scaled_recipe(99999, factor=2)
+    except HTTPException as exc:
+        assert exc.status_code == 404
+    else:
+        raise AssertionError("missing recipe should raise HTTPException")
