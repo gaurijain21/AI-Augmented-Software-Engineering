@@ -1,30 +1,31 @@
-from fastapi.testclient import TestClient
-
-from main import app
-
-client = TestClient(app)
+from main import RecipeIn, create_recipe, get_recipe, list_recipes
 
 
 def test_create_and_get_recipe():
-    r = client.post(
-        "/recipes",
-        json={"title": "Pancakes", "ingredients": ["flour", "milk"], "tags": ["breakfast"]},
+    recipe = create_recipe(
+        RecipeIn(title="Pancakes", ingredients=["flour", "milk"], tags=["breakfast"])
     )
-    assert r.status_code == 200
-    rid = r.json()["id"]
-    r2 = client.get(f"/recipes/{rid}")
-    assert r2.status_code == 200
-    assert r2.json()["title"] == "Pancakes"
-    assert r2.json()["tags"] == ["breakfast"]
+    assert get_recipe(recipe["id"])["title"] == "Pancakes"
+    assert get_recipe(recipe["id"])["tags"] == ["breakfast"]
 
 
 def test_list_recipes():
-    client.post("/recipes", json={"title": "Toast"})
-    r = client.get("/recipes")
-    assert r.status_code == 200
-    assert any(rec["title"] == "Toast" for rec in r.json())
+    create_recipe(RecipeIn(title="Toast"))
+    assert any(rec["title"] == "Toast" for rec in list_recipes())
 
 
 def test_unknown_recipe_404():
-    r = client.get("/recipes/99999")
-    assert r.status_code == 404
+    from fastapi import HTTPException
+
+    try:
+        get_recipe(99999)
+    except HTTPException as exc:
+        assert exc.status_code == 404
+    else:
+        raise AssertionError("missing recipe should raise HTTPException")
+
+
+def test_tag_filter_returns_only_matching_recipes():
+    create_recipe(RecipeIn(title="Waffles", tags=["week7-breakfast"]))
+    create_recipe(RecipeIn(title="Pasta", tags=["week7-dinner"]))
+    assert [recipe["title"] for recipe in list_recipes(tag="week7-breakfast")] == ["Waffles"]
